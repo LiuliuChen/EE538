@@ -108,10 +108,17 @@ class TrojanMap {
   // and return dependencies vector for topological sort problem.
   std::vector<std::vector<std::string>> ReadDependenciesFromCSVFile(std::string dependencies_filename);
 
+  //DeliveringTrojan helper
+  void topologicalSortUntil(std::string root, std::vector<std::string> &visited, std::unordered_map<std::string, std::vector<std::string>> &neighbors, std::vector<std::string> &result);
+
   // Given a vector of location names, it should return a sorting of nodes
   // that satisfies the given dependencies.
   std::vector<std::string> DeliveringTrojan(std::vector<std::string> &location_names,
                                             std::vector<std::vector<std::string>> &dependencies);
+  // TSP Helper
+  void Tsp_aux(std::string start, std::unordered_map<std::string, std::unordered_map<std::string, double>> weights, std::string cur_id, double cur_cost, std::vector<std::string> &cur_path, std::pair<double, std::vector<std::vector<std::string>>> &result);
+  void Tsp_aux_2opt(int MAXCOUNT, std::vector<std::string> path, std::pair<double, std::vector<std::vector<std::string>>> &result);  
+
 
   // Given a vector of location ids, it should reorder them such that the path
   // that covers all these points has the minimum length.
@@ -126,11 +133,16 @@ class TrojanMap {
   std::pair<double, std::vector<std::vector<std::string>>> TravellingTrojan_2opt(
       std::vector<std::string> &location_ids);
 
+  //DFS-cycle detection helper
+  bool DFS(std::string root, std::string parent, std::unordered_map<std::string, std::vector<std::string>> &neighbors, std::vector<std::string> &visited);
+
+
   // Given a subgraph specified by a square-shape area, determine whether there is a
   // cycle or not in this subgraph.
   // vector square has 4 elements: left/right/top/bottom bound in order.
   bool CycleDetection(std::vector<double> &square);
 
+  
   // Given a location id and k, find the k closest points on the map
   std::vector<std::string> FindKClosestPoints(std::string name, int k);
   

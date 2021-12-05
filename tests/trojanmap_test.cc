@@ -211,7 +211,7 @@ TEST(TrojanMapTest, CycleDetection) {
 
 
 
-// Test cycle detection function
+// Test Topological sort function
 TEST(TrojanMapTest, TopologicalSort) {
   TrojanMap m;
   m.CreateGraphFromCSVFile();
