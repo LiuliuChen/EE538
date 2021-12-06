@@ -130,8 +130,8 @@ void TrojanMap::PrintMenu() {
     std::string input2;
     getline(std::cin, input2);
     auto start = std::chrono::high_resolution_clock::now();
-    // auto results = CalculateShortestPath_Dijkstra(input1, input2);
-    auto results = CalculateShortestPath_Bellman_Ford(input1, input2);
+    auto results = CalculateShortestPath_Dijkstra(input1, input2);
+    // auto results = CalculateShortestPath_Bellman_Ford(input1, input2);
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     menu = "*************************Results******************************\n";
@@ -746,54 +746,48 @@ std::vector<std::string> TrojanMap::CalculateShortestPath_Dijkstra(
     std::string location1_name, std::string location2_name) {
   
   std::vector<std::string> path;
-  std::vector<std::string> visited;
-  std::string sourceID = GetID(location1_name);
-  std::unordered_map<std::string, double> d;
-  std::unordered_map<std::string, std::string> all_path;
+  std::unordered_map<std::string, double> dis; // distance from source to all nodes
+  std::unordered_map<std::string, std::string> predecessor; // Restore the shortest path, it records the predecessor vertex of each vertex
 
-  // Initializing
-  std::vector<std::string> &sourceNeighbors = data[sourceID].neighbors;
+  // Create weight graph
+  std::unordered_map<std::string, std::unordered_map<std::string, double>> weights;
   for (auto &i: data){
-    if (std::find(sourceNeighbors.begin(), sourceNeighbors.end(), i.first) != sourceNeighbors.end()){
-      d[i.first] = CalculateDistance(sourceID, i.first);
-      all_path[i.first] = sourceID;
-    }
-    else{
-      d[i.first] = INFINITY;
-      all_path[i.first] = "";
+    dis[i.first] = INFINITY;
+    for (auto &j: i.second.neighbors){
+      weights[i.first][j] = CalculateDistance(i.first, j);
     }
   }
-  d[sourceID] = 0;
 
-  visited.push_back(sourceID);
-
-  while (visited.size() < data.size())
+  typedef std::pair<double, std::string> P; // first is distance, second is node
+  std::priority_queue<P, std::vector<P>, std::greater<P>> pq;
+  std::string sourceId = GetID(location1_name);
+  pq.push(std::make_pair(0., sourceId));
+  dis[sourceId] = 0.;
+  while (!pq.empty())
   {
-    // find minimum but not visited
-    std::string uID;
-    double u = INFINITY;
-    for (auto &i: d){
-      if (u > i.second && std::find(visited.begin(), visited.end(), i.first) == visited.end()){
-        u = i.second;
-        uID = i.first;
-      }
-    }
-    visited.push_back(uID);
+    std::string locId = pq.top().second;
+    pq.pop();
 
-    //Update distances or u's neighbors
-    // std::vector<std::string> uNeighbors = GetNeighborIDs(uID);
-    for (auto &i: data[uID].neighbors){
-      if (CalculateDistance(uID, i)+d[uID] < d[i]){
-        d[i] = CalculateDistance(uID, i)+d[uID];
-        all_path[i] = uID;
+    for (auto &i: data[locId].neighbors){
+      if (dis[i] > dis[locId] + weights[i][locId]){
+        dis[i] = dis[locId] + weights[i][locId];
+        pq.push(std::make_pair(dis[i], i));
+        predecessor[i] = locId;
       }
-    }
+    } 
   }
 
-  // find path from loc1 to loc2
-  for(std::string i=GetID(location2_name); i!=""; i=all_path[i]){
-    path.insert(path.begin(), i);
+  // create the shortest path from loc1 to loc2
+  std::string destId = GetID(location2_name);
+  path.push_back(destId);
+  while (destId != sourceId)
+  {
+    path.push_back(predecessor[destId]);
+    destId = predecessor[destId];
   }
+  std::reverse(path.begin(), path.end());
+  
+
   
   return path;
 }
@@ -808,39 +802,43 @@ std::vector<std::string> TrojanMap::CalculateShortestPath_Dijkstra(
  */
 std::vector<std::string> TrojanMap::CalculateShortestPath_Bellman_Ford(
     std::string location1_name, std::string location2_name){
+  
+
   std::vector<std::string> path;
-  std::string sourceID=GetID(location1_name), destID=GetID(location2_name);
-  std::unordered_map<std::string, double> d;
-  std::unordered_map<std::string, std::vector<std::string>> pre;
-  std::unordered_map<std::string, std::string> all_path;
+  std::unordered_map<std::string, double> dis; //distance from source to other nodes
+  typedef std::pair<std::string, std::string> P;
+  std::unordered_map<P, double, hash_pair> weights;
+  std::string loc1Id=GetID(location1_name), loc2Id=GetID(location2_name);
+  std::unordered_map<std::string, std::string> predecessor; // Restore the shortest path, it records the predecessor vertex of each vertex
 
-  //Initializing
+  // create weights map
   for (auto &i: data){
-    d[i.first] = INFINITY;
-    pre[i.first] = data[i.first].neighbors;
-    // pre[i.first] = GetNeighborIDs(i.first);
-    all_path[i.first] = "";
+    dis[i.first] = INFINITY;
+    for (auto &j: i.second.neighbors)
+      weights[std::make_pair(i.first, j)] = CalculateDistance(i.first, j);
   }
-  d[sourceID] = 0;
+  dis[loc1Id] = 0.;
 
-  //Relaxing
-  for (int i=0; i<data.size()-1; i++){
-    for (auto &v: data){
-      for (auto &u: pre[v.first]){
-        if (d[u] + CalculateDistance(v.first, u) < d[v.first]){
-          d[v.first] = d[u] + CalculateDistance(v.first, u);
-          all_path[v.first] = u;
-        }
-        // std::vector<double> compareList = {d[v.first], d[u]+CalculateDistance(v.first, u)};
-        // d[v] = *std::min_element(compareList.begin(), compareList.end());
+  // Relax all edges
+  for(int i=0; i<data.size()-1; i++){
+    for (auto &j: weights){
+      std::string u=j.first.first, v=j.first.second;
+      double w = j.second;
+      if (dis[u]+w < dis[v]){
+        dis[v] = dis[u] + w;
+        predecessor[v] = u;
       }
     }
   }
 
-  // Find the path from loc1 to loc2
-  for(std::string i=destID; i!=""; i=all_path[i]){
-    path.insert(path.begin(), i);
-  } 
+  // create the shortest path from loc1 to loc2
+  path.push_back(loc2Id);
+  while (loc2Id != loc1Id)
+  {
+    path.push_back(predecessor[loc2Id]);
+    loc2Id = predecessor[loc2Id];
+  }
+  std::reverse(path.begin(), path.end());
 
   return path;
 }
@@ -1093,8 +1091,8 @@ bool TrojanMap::CycleDetection(std::vector<double> &square) {
     i.second.resize(it-i.second.begin());
   }
 
-  // plot subgraphs
-  PlotPointsandEdges(nodes, square);
+  // // plot subgraphs
+  // PlotPointsandEdges(nodes, square);
 
   //dfs
   for (auto &i: nodes){
