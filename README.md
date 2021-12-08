@@ -145,12 +145,14 @@ std::vector<std::string> Autocomplete(std::string name);
 
 - Output
     1. No Cycle
-    ![step5-img1](/data/s5-1.png)
-    ![step5-img2](/data/s5-2.png)
+
+        ![step5-img1](/data/s5-1.png)
+        ![step5-img2](/data/s5-2.png)
 
     2. Has Cycle
-    ![step5-img3](/data/s5-3.png)
-    ![step5-img4](/data/s5-4.png)
+
+        ![step5-img3](/data/s5-3.png)
+        ![step5-img4](/data/s5-4.png)
 
 ## Step 6: Topological Sort
 
