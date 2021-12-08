@@ -1,6 +1,8 @@
 # EE538 Final Project Report - Fall 2021 - TrojanMap
 
 ## Overview
+This is the report of the final project TrojanMap for EE538. The project contains 7 steps and the following is the analysis and results for each step.
+
 
 ## Step 1: Autocomplete the location name
 ```c++
@@ -190,4 +192,7 @@ std::vector<std::string> Autocomplete(std::string name);
         ![step7-img6](/data/s7-5.png)
 
 
+
 ## Conclusion
+
+From this project and classes of EE538, I have learned the basic C++ language construct, data structure and different algorithms, especially the Graphs algorithms, which are applied to the project. I've grown stronger through this smester and what I learned is really helpful for my future career. I truly appreciate the effort Professor Arash and TAs made for this course!
